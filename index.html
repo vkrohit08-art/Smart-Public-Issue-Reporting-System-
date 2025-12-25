@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Public Issue Reporting Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { box-sizing: border-box; transition: all 0.3s ease; }
+        
+        body {
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container { width: 100%; max-width: 1000px; padding: 20px; }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-title { text-align: center; margin-bottom: 40px; }
+        .hero-title h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .role-box { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .role-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .role-card:hover { border-color: var(--primary); transform: translateY(-5px); background: rgba(99, 102, 241, 0.05); }
+
+        .input-group { margin-bottom: 20px; }
+        label { display: block; color: var(--text-dim); margin-bottom: 8px; font-size: 0.9rem; }
+        
+        input, select, textarea {
+            width: 100%;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: white;
+            outline: none;
+        }
+
+        button {
+            width: 100%; padding: 14px; border-radius: 12px; border: none;
+            font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .btn-primary { background: var(--primary); color: white; margin-top: 10px; }
+        .btn-back { background: transparent; color: var(--text-dim); margin-bottom: 20px; width: auto; font-size: 0.9rem; }
+
+        /* Report View Styling */
+        .user-report-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 15px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .status-pill {
+            padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;
+        }
+        .status-Pending { background: #7c2d12; color: #fb923c; }
+        .status-Resolved { background: #064e3b; color: #34d399; }
+        .status-InProgress { background: #1e3a8a; color: #93c5fd; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { text-align: left; padding: 15px; color: var(--text-dim); border-bottom: 1px solid var(--border); }
+        td { padding: 15px; border-bottom: 1px solid var(--border); }
+        .thumbnail { width: 45px; height: 45px; object-fit: cover; border-radius: 8px; }
+        .hidden { display: none !important; }
+
+        hr { border: 0; border-top: 1px solid var(--border); margin: 30px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="roleSelect" class="glass-card">
+        <div class="hero-title">
+            <h1>Smart Public Issue Reporting Portal</h1>
+            <p style="color: var(--text-dim)">Efficiently bridging the gap between citizens and authorities.</p>
+        </div>
+        <div class="role-box">
+            <div class="role-card" onclick="showSection('userSection')">
+                <span>👤</span>
+                <h3>Citizen</h3>
+                <p style="font-size: 0.8rem; color: var(--text-dim)">Report & Track Issues</p>
+            </div>
+            <div class="role-card" onclick="showSection('adminLogin')">
+                <span>🛡️</span>
+                <h3>BBMP Login</h3>
+                <p style="font-size: 0.8rem; color: var(--text-dim)">Authority Management</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="userSection" class="glass-card hidden">
+        <button class="btn-back" onclick="showSection('roleSelect')">← Home</button>
+        
+        <h3>New Issue Report</h3>
+        <form id="reportForm">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="input-group"><label>Your Name</label><input type="text" id="userName" required></div>
+                <div class="input-group"><label>Location</label><input type="text" id="location" required></div>
+            </div>
+            <div class="input-group">
+                <label>Issue Type</label>
+                <select id="issueType" required>
+                    <option value="">Select Category</option>
+                    <option>Pothole</option>
+                    <option>Garbage Disposal</option>
+                    <option>Water Leakage</option>
+                    <option>Street Light Failure</option>
+                </select>
+            </div>
+            <div class="input-group"><label>Description</label><textarea id="description" rows="2"></textarea></div>
+            <div class="input-group"><label>Photo</label><input type="file" id="photo" accept="image/*"></div>
+            <button type="submit" class="btn-primary">Submit Report</button>
+        </form>
+
+        <hr>
+
+        <h3>Track My Reports</h3>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="searchName" placeholder="Enter your name to track...">
+            <button onclick="searchUserReports()" class="btn-primary" style="width: auto; margin:0">Search</button>
+        </div>
+        <div id="personalReportsResult"></div>
+    </div>
+
+    <div id="adminLogin" class="glass-card hidden">
+        <button class="btn-back" onclick="showSection('roleSelect')">← Back</button>
+        <div style="max-width: 320px; margin: auto; text-align: center;">
+            <h2 style="margin-bottom: 25px;">BBMP Authorization</h2>
+            <form id="adminForm">
+                <input type="text" id="adminUser" placeholder="Username (BBMP)" style="margin-bottom:15px" required>
+                <input type="password" id="adminPass" placeholder="PIN (12345)" style="margin-bottom:20px" required>
+                <button class="btn-primary">Access Dashboard</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="adminSection" class="glass-card hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>BBMP Dashboard</h2>
+            <button class="btn-back" onclick="showSection('roleSelect')" style="margin:0">Logout</button>
+        </div>
+        <div id="adminTableContainer" style="overflow-x: auto;"></div>
+    </div>
+</div>
+
+<script>
+    const STORAGE_KEY = "citizen_reports_v3";
+    let reports = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    function showSection(id) {
+        document.querySelectorAll('.glass-card').forEach(el => el.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        if(id === 'adminSection') renderAdminDashboard();
+    }
+
+    // Citizen Form Submission
+    document.getElementById('reportForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const file = document.getElementById('photo').files[0];
+        let base64Image = "";
+
+        if (file) {
+            base64Image = await new Promise((res) => {
+                const reader = new FileReader();
+                reader.onload = () => res(reader.result);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        const newReport = {
+            id: 'REF-' + Math.floor(1000 + Math.random() * 9000),
+            name: document.getElementById('userName').value.trim(),
+            loc: document.getElementById('location').value,
+            issue: document.getElementById('issueType').value,
+            desc: document.getElementById('description').value,
+            status: 'Pending',
+            img: base64Image,
+            date: new Date().toLocaleDateString()
+        };
+
+        reports.push(newReport);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+        alert("Report Submitted! Thank you for being a responsible citizen.");
+        e.target.reset();
+    });
+
+    // Citizen Search Feature
+    function searchUserReports() {
+        const name = document.getElementById('searchName').value.toLowerCase().trim();
+        const container = document.getElementById('personalReportsResult');
+        container.innerHTML = "";
+
+        if(!name) return;
+
+        const filtered = reports.filter(r => r.name.toLowerCase() === name);
+        
+        if(filtered.length === 0) {
+            container.innerHTML = `<p style="color:var(--text-dim); margin-top:15px;">No reports found for this name.</p>`;
+            return;
+        }
+
+        filtered.forEach(r => {
+            container.innerHTML += `
+                <div class="user-report-item">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start">
+                        <div>
+                            <span class="status-pill status-${r.status.replace(/\s/g, '')}">${r.status}</span>
+                            <p style="margin: 8px 0 4px 0"><strong>${r.issue}</strong></p>
+                            <p style="font-size:0.8rem; color:var(--text-dim)">Ref: ${r.id} | ${r.loc}</p>
+                        </div>
+                        ${r.img ? `<img src="${r.img}" style="width:60px; height:60px; border-radius:10px; object-fit:cover">` : ''}
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // BBMP Admin Logic
+    document.getElementById('adminForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const user = document.getElementById('adminUser').value;
+        const pass = document.getElementById('adminPass').value;
+        
+        if(user === "BBMP" && pass === "12345") {
+            showSection('adminSection');
+        } else {
+            alert("Invalid Credentials");
+        }
+    });
+
+    function renderAdminDashboard() {
+        const container = document.getElementById('adminTableContainer');
+        if (reports.length === 0) {
+            container.innerHTML = "<p style='text-align:center; padding:20px;'>No reports to display.</p>";
+            return;
+        }
+
+        let html = `<table><thead><tr><th>Details</th><th>Status</th><th>Update</th></tr></thead><tbody>`;
+        reports.forEach((r, idx) => {
+            html += `
+                <tr>
+                    <td>
+                        <div style="display:flex; gap:12px; align-items:center">
+                            ${r.img ? `<img src="${r.img}" class="thumbnail">` : `<div class="thumbnail" style="background:#334155"></div>`}
+                            <div><b>${r.issue}</b><br><small>${r.name} • ${r.loc}</small></div>
+                        </div>
+                    </td>
+                    <td><span class="status-pill status-${r.status.replace(/\s/g, '')}">${r.status}</span></td>
+                    <td>
+                        <select onchange="updateStatus(${idx}, this.value)" style="width:auto; background: #0f172a; border: 1px solid #444; color:white;">
+                            <option value="">Update</option>
+                            <option value="InProgress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+                    </td>
+                </tr>
+            `;
+        });
+        container.innerHTML = html + "</tbody></table>";
+    }
+
+    function updateStatus(index, newStatus) {
+        if(!newStatus) return;
+        reports[index].status = newStatus === "InProgress" ? "In Progress" : "Resolved";
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+        renderAdminDashboard();
+    }
+</script>
+</body>
+</html>
